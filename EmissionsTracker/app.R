@@ -47,7 +47,8 @@ ui <- fluidPage(
             tabsetPanel(
                 tabPanel("World Map", leafletOutput({"mymap"})),
                 tabPanel("Metric Projection", plotOutput({"plot"}))
-            )
+            ),
+            textOutput("test")
         )
     )
 )
@@ -68,14 +69,13 @@ server <- function(input, output) {
         as.matrix(locations)
     })
     
+    output$test <- renderPrint({globLoc[2,]})
     
     output$mymap <- renderLeaflet({
         locs <- locs()
         countries <- input$checkGroup
         
-        worldmap <- map('world', fill = T, plot = F)
-        
-        map <- leaflet(data = worldmap) %>% addTiles()
+        map <- leaflet() %>% addTiles()
         numreg <- length(countries)
         
         if(numreg > 1) {
