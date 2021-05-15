@@ -1,0 +1,88 @@
+---
+title: "Emissions Tracker"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(tidyverse)
+library(leaflet)
+
+globDat <- as.data.frame(read_csv("reconstructed_data.csv", col_names = T))
+
+globLoc <- as.data.frame(read_csv("locations.csv", col_names = T))
+countries <- c(globLoc$name)
+regressors <- unique(globDat$IndicatorName)
+```
+
+Column {.sidebar data-width=300}
+-----------------------------------------------------------------------
+
+```{r}
+selectInput('checkGroup', label = h3("Select Country:"), multiple = F, choices = c(countries), selected = "United States")
+
+radioButtons('start', label = h3("Select Start Date:"), choices = c('Since earliest measurement' = 1, "Custom start date" = 2), selected = 1)
+
+conditionalPanel(
+  condition = "input.start == '2'",
+  dateInput('date', label = h4('Custom start date:'), value = "2020-01-22")
+)
+
+selectInput('regressors', label = h3("Select Regressors:"), multiple = T, choices = c(regressors))
+  
+```
+
+Column
+-----------------------------------------------------------------------
+
+### Sum of cases in selected countries
+
+```{r}
+selected <- reactive({input$checkGroup})
+
+renderPrint({input$checkGroup})
+```
+
+### Display selected country
+
+```{r}
+locs <- reactive({
+  dataset <- globDat
+  countries <- input$checkGroup
+  
+  locations <- c()
+  for(i in countries) {
+    locations <- rbind(locations, globLoc[which(i == globLoc$name), c(2,3)])
+  }
+  
+  as.matrix(locations)
+})
+
+
+mymap <- reactive({
+  locs <- locs()
+  countries <- input$checkGroup
+  
+  map <- leaflet() %>% addTiles()
+  numreg <- length(countries)
+  
+  if(numreg > 1) {
+    for(i in (1:length(countries))) {
+        map <- addMarkers(map, lng = locs[i,2], lat = locs[i,1], popup = countries[i])
+    }
+  } else {
+    map <- addMarkers(map, lng = locs[2], lat = locs[1], popup = countries[1]) %>% setView(lng = locs[2], lat = locs[1], zoom = 03)
+  }
+  
+  map
+})
+
+renderLeaflet({mymap()})
+
+```
+
