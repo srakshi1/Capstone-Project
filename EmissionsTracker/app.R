@@ -22,7 +22,7 @@ globLocTot <- as.data.frame(read_csv("locations.csv", col_names = T))
 globLoc <- c()
 for(i in 1:length(unique(globDat$CountryName))) {
     if(unique(globDat$CountryName)[i] %in% globLocTot$name){
-        globLoc <- rbind(globLoc, globLocTot[i,])
+        globLoc <- rbind(globLoc, globLocTot[which(unique(globDat$CountryName)[i] == globLocTot$name),])
     }
 }
 
