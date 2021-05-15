@@ -69,7 +69,7 @@ server <- function(input, output) {
         as.matrix(locations)
     })
     
-    output$test <- renderPrint({globLoc[2,]})
+    #output$test <- renderPrint({globLoc[2,]})
     
     output$mymap <- renderLeaflet({
         locs <- locs()
