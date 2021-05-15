@@ -35,16 +35,15 @@ linreg = function(country,feature,predict_year){
   new_year = 1961:predict_year
   predict_line = new_year * coef(fit)[2]+coef(fit)[1]
   df_smoothed <- data.frame(year = year, original = y_log_feature, smoothed = linear_smoothed)
-  df_predict_plot <- data.frame(year = new_year, data = predict_line)
-  
-  my_list <- list("feature" = feature, "processed_data" = df_smoothed, "predict_plot" = df_predict_plot, "predict_year" = predict_year, "predict_result" = predict_value)
+  my_list <- list("feature" = feature, "processed_data" = df_smoothed, "predict_year" = predict_year, "predict_result" = predict_value)
   return(my_list)
 }
 fitted <- linreg('China','CO2 emissions (kt)',2040)
-p <- ggplot(fitted$processed_data,aes(year,original)) + geom_point() + geom_line(aes(y = smoothed), color = "red", linetype = "dashed")+geom_point(aes(x=fitted$predict_year, y=fitted$predict_result), colour="blue")
-print(p)
+p <- ggplot(fitted$processed_data,aes(year,original)) + geom_point() + geom_line(aes(y = smoothed), color = "red", linetype = "dashed")+
+  geom_point(aes(x=fitted$predict_year, y=fitted$predict_result), colour="blue",shape=23, fill="blue", size=3)+
+  geom_text(x=fitted$predict_year, y=fitted$predict_result, label=paste(fitted$predict_result),color='blue',size = 3.5)
 # Change predicted value to different shape. maybe showing value of it.
-p <- p+labs(y = 'Percentage % (Log)')+labs(title = fitted$feature)+geom_point(aes(x=fitted$predict_year, y=fitted$predict_result), colour="blue")
+p <- p+labs(y = 'Logarithmic data')+labs(title = paste(fitted$feature,'and prediction in year',fitted$predict_year))
 print(p)
 
 
