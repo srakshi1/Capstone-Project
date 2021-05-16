@@ -28,8 +28,14 @@ for (i in 1:dim(globDat)[1]) {
 }
 #This is the final data for display
 glob_CO2Dat <- globDat[CO2_identifier,]
-regressors <- unique(glob_CO2Dat$IndicatorName)
 
+regressors <- c()
+for (i in 1:length(glob_CO2Dat$IndicatorName)) {
+  numzeros <- length(which(0 == glob_CO2Dat[i,c(6:length(glob_CO2Dat[i,]))]))
+  if(numzeros < length(glob_CO2Dat[i,c(6:length(glob_CO2Dat[i,]))])) {
+    regressors <- rbind(regressors, glob_CO2Dat[i,c(2, 4)])
+  }
+}
 
 globLocTot <- as.data.frame(read_csv("https://raw.githubusercontent.com/bgraha13/Capstone-Project/main/EmissionsTracker/locations.csv", col_names = T))
 
@@ -52,7 +58,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput('checkGroup', label = h3("Select Country:"), multiple = F, choices = c(countries), selected = "United States"),
-      selectInput('metrics', label = h3("Select Metric:"), multiple = F, choices = c(regressors)),
+      uiOutput("metricInputs"),
       numericInput('projectedYear', label = h3("Input Year Projection:"), value = 2030)
     ),
     
@@ -60,7 +66,7 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(
         tabPanel("World Map", leafletOutput({"mymap"})),
-        tabPanel("Metric Projection", plotOutput({"plot"}))
+        tabPanel("Metric Projection", plotlyOutput({"plot"}))
       ),
       textOutput("test")
     )
@@ -70,6 +76,11 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  
+  output$metricInputs <- renderUI({
+    ch <- regressors[which(regressors$CountryName == input$checkGroup),2]
+    selectInput('metrics', label = h3("Select Metric:"), multiple = F, choices = c(ch))
+  })
   
   locs <- reactive({
     dataset <- glob_CO2Dat
@@ -104,7 +115,7 @@ server <- function(input, output) {
   
   linregDat <- reactive({linreg(input$checkGroup, input$metrics, input$projectedYear)})
   
-  output$plot <- renderPlot({
+  output$plot <- renderPlotly({
     fitted <- linregDat()
     p <- ggplot(fitted$processed_data,aes(year,original)) + geom_point() + geom_line(aes(y = smoothed), color = "red", linetype = "dashed")+
       geom_point(aes(x=fitted$predict_year, y=fitted$predict_result), colour="blue",shape=23, fill="blue", size=3)+
@@ -112,7 +123,7 @@ server <- function(input, output) {
       annotate("text", x=2000, y=fitted$predict_result+1,label = paste("Rsquare =",fitted$stats))
     # Change predicted value to different shape. maybe showing value of it.
     p <- p+labs(y = 'Logarithmic data')+labs(title = paste(fitted$feature,'and prediction in year',fitted$predict_year))
-    p
+    ggplotly(p)
   })
 }
 
