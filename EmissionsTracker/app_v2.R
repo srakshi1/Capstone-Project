@@ -60,9 +60,9 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(
         tabPanel("World Map", leafletOutput({"mymap"})),
-        tabPanel("Metric Projection", plotOutput({"plot"}))
+        tabPanel("Metric Projection", plotlyOutput({"plot"}))
       ),
-      textOutput("test")
+      dataTableOutput("test")
     )
   )
 )
@@ -104,16 +104,17 @@ server <- function(input, output) {
   
   linregDat <- reactive({linreg(input$checkGroup, input$metrics, input$projectedYear)})
   
-  output$plot <- renderPlot({
+  output$plot <- renderPlotly({
     fitted <- linregDat()
     p <- ggplot(fitted$processed_data,aes(year,original)) + geom_point() + geom_line(aes(y = smoothed), color = "red", linetype = "dashed")+
       geom_point(aes(x=fitted$predict_year, y=fitted$predict_result), colour="blue",shape=23, fill="blue", size=3)+
       geom_text(x=fitted$predict_year, y=fitted$predict_result, label=paste(fitted$predict_result),color='blue',size = 3.5)+
-      annotate("text", x=2000, y=fitted$predict_result+1,label = paste("Rsquare =",fitted$stats)) + ylim(3,fitted$max)
+      annotate("text", x=2000, y=fitted$predict_result+1,label = paste("Rsquare =",fitted$stats)) +coord_cartesian(ylim = c(fitted$min,fitted$max) ) 
     # Change predicted value to different shape. maybe showing value of it.
     p <- p+labs(y = 'Logarithmic data')+labs(title = paste(fitted$feature,'and prediction in year',fitted$predict_year))
-    p
+    ggplotly(p)
   })
+  
 }
 
 linreg = function(country,feature,predict_year){
