@@ -7,7 +7,7 @@ Capstone Project for Advanced DSBME
   
   The process of climate change has been proposed to cause such environmental phenomena as rising sea levels, ocean acidification, and extreme weather events. These phenomena are expected to degrade Earth’s biodiversity as regions become uninhabitable for both human and nonhuman life. As a result, it is necessary to develop international policies that limit global emissions, thereby slowing the process of climate change to a sustainable rate.   
   
-  In this project, we analyze emissions data for an array of the world’s leading CO<sub>2</sub> emitters and provide emissions predictions for a desired input year. Furthermore, we compare the predicted value with the proposed global total emissions provided in the UNEP’s Emissions Gap 2020 Report to verify if a given country is on track to lower climate change to 1.5&deg;C by the year 2100.   
+  In this project, we analyze emissions data for an array of the world’s leading CO<sub>2</sub> emitters and provide emissions predictions for a desired input year. Furthermore, we compare the predicted value with the proposed global total emissions provided in the UNEP’s 2020 Emissions Gap Report to verify if a given country is on track to lower climate change to 1.5&deg;C by the year 2100.   
 
 
 
