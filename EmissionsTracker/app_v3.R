@@ -16,6 +16,7 @@ library(glmnet)
 library(markdown)
 library(gridExtra)
 
+
 globDat <- as.data.frame(read_csv("https://raw.githubusercontent.com/bgraha13/Capstone-Project/main/EmissionsTracker/reconstructed_data.csv", col_names = T))
 globDat$'2020' = NULL
 globDat$'2019' = NULL
@@ -82,19 +83,30 @@ selected_countries_CO2 <-unique(selected_df_CO2$CountryName)
 
 # Define UI for application that draws a histogram
 ui <- navbarPage("Environmental Tracker Tool",
-  tabPanel("Global environmental data plots",
+  tabPanel("Global environmental data distribution",
+    sidebarLayout(
+      sidebarPanel(
+        selectInput('mosaic_feature', label = h3("Select Metric:"), multiple = F, choices = c(all_regressors))
+      ),
+      mainPanel(
+        tabsetPanel(
+          tabPanel("Global distribution",plotOutput({"mosaic_plot"}))
+        )
+      )
+    )
+   ),
+  tabPanel("Single country environemtal analysis",
     sidebarLayout(
       sidebarPanel(
         selectInput('checkGroup', label = h3("Select Country:"), multiple = F, choices = c(selected_countries_all), selected = "United States"),
         selectInput('metrics', label = h3("Select Metric:"), multiple = F, choices = c(all_regressors)),
-        numericInput('projectedYear', label = h3("Input Year Projection:"), value = 2030)
+        numericInput('projectedYear', label = h3("Year for prediction:"), value = 2030)
       ),
       mainPanel(
         tabsetPanel(
           tabPanel("World Map", leafletOutput({"mymap"})),
-          tabPanel("Metric Projection", plotOutput({"plot"}))
-        ),
-        textOutput("test")
+          tabPanel("Data times series display", plotOutput({"plot"}))
+        )
       )
     )
   ),
@@ -104,7 +116,7 @@ ui <- navbarPage("Environmental Tracker Tool",
                selectInput('Country1', label = h3("Select Country1:"), multiple = F, choices = c(selected_countries_CO2), selected = "United States"),
                selectInput('Country2', label = h3("Select Country2:"), multiple = F, choices = c(selected_countries_CO2), selected = "China"),
                selectInput('feature', label = h3("Select Metric:"), multiple = F, choices = c(CO2_regressors)),
-               numericInput('predictYear', label = h3("Input Year Projection:"), value = 2030)
+               numericInput('predictYear', label = h3("Year for prediction:"), value = 2030)
              ),
              mainPanel(
                tabsetPanel(
@@ -124,12 +136,12 @@ ui <- navbarPage("Environmental Tracker Tool",
 server <- function(input, output) {
   
   locs <- reactive({
-    dataset <- selected_df
+    dataset <- selected_df_all
     countries <- input$checkGroup
     
     locations <- c()
     for(i in countries) {
-      locations <- rbind(locations, globLoc[which(i == globLoc$name), c(2,3)])
+      locations <- rbind(locations, globLoc_all[which(i == globLoc_all$name), c(2,3)])
     }
     
     as.matrix(locations)
@@ -155,6 +167,7 @@ server <- function(input, output) {
   })
   
   globRegDat <- reactive({globReg(input$checkGroup, input$metrics, input$projectedYear)})
+  # mosaicDat<- reactive({mosaic_plot(input$checkGroup, input$metrics)})
   
   output$plot <- renderPlot({
     fitted <- globRegDat()
@@ -166,6 +179,16 @@ server <- function(input, output) {
     p
   })
   
+  output$mosaic_plot <- renderPlot({
+    mosaic <- filter(selected_df_all,IndicatorName==input$mosaic_feature)
+    mosaic_p <- mosaic[ -c(1,3:5) ]
+    mosaic_long <- mosaic_p %>% gather(key = "Year",value = "Data",c(-"CountryName"))
+    g = ggplot(mosaic_long,aes(x = Year, y = Data))
+    g = g+geom_point(aes(colour = CountryName))
+    g = g+theme(axis.text.x=element_text(angle=90))
+    g
+  })
+
   country1_CO2 <- reactive({linreg(input$Country1, input$feature, input$predictYear)})
   country2_CO2 <- reactive({linreg(input$Country2, input$feature, input$predictYear)})
   
@@ -248,5 +271,11 @@ linreg = function(country,feature,predict_year){
   return(my_list)
 }
 
+mosaic_plot <- function(country,feature,predict_year){
+  mosaic = filter(selected_df_all,IndicatorName=='CO2 emissions (kt)')
+  
+  
+  
+}
 # Run the application 
 shinyApp(ui = ui, server = server)
