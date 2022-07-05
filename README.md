@@ -17,5 +17,4 @@ Yingnan Zhang –  Data preprocessing; feature selection; created page "Global e
 Brice Graham Hendrickson  - Shiny app UI design, created shiny app code skeleton; created panel for user inputs; displayed interactive global map; project description drafting.
 
 Shardul Rakshit – Implemented linear regression algorithm; helped debugging, participated in UI design; 
-
-### Live links
+https://srakshi1.shinyapps.io
